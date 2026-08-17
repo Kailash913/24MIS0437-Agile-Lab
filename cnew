@@ -1,0 +1,56 @@
+import math
+
+b = [['P', '.', '.', '.'], ['.', '#', '.', '.'], ['.', '.', '#', '.'], ['.', '.', '.', 'G']]
+m, p, ai, traps = [(-1, 0), (1, 0), (0, -1), (0, 1)], [0, 0], [3, 3], {}
+
+def show():
+    for r in range(4):
+        print(*( 'P' if [r,c]==p else 'A' if [r,c]==ai else 'T' if (r,c) in traps else b[r][c] for c in range(4) ))
+    print()
+
+v = lambda r, c: 0 <= r < 4 and 0 <= c < 4 and b[r][c] != '#'
+dist = lambda a, b: abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+def minimax(pos, p_pos, depth, alpha, beta, maxi):
+    if pos == p_pos: return 50
+    if pos == [0, 0]: return -50
+    if depth == 0: return -dist(pos, [0, 0])
+    best = -math.inf if maxi else math.inf
+    for dr, dc in m:
+        r, c = pos[0]+dr, pos[1]+dc
+        if v(r, c):
+            val = minimax([r,c] if maxi else pos, p_pos if maxi else [r,c], depth-1, alpha, beta, not maxi)
+            if maxi and (r,c) in traps: val -= 20
+            best, alpha, beta = (max(best, val), max(alpha, best), beta) if maxi else (min(best, val), alpha, min(beta, best))
+            if beta <= alpha: break
+    return best
+
+def ai_move():
+    global ai
+    best_v, best_m = -math.inf, ai
+    for dr, dc in m:
+        r, c = ai[0]+dr, ai[1]+dc
+        if v(r, c):
+            val = minimax([r,c], p, 3, -math.inf, math.inf, False) - (20 if (r,c) in traps else 0)
+            if val > best_v: best_v, best_m = val, [r,c]
+    ai = best_m
+
+def update_traps():
+    for k in list(traps.keys()):
+        traps[k] -= 1
+        if traps[k] <= 0: del traps[k]
+
+while True:
+    show()
+    if ai == p: print("AI caught the player!"); break
+    if p == [3, 3]: print("Player reached the goal!"); break
+    ch = input("W/A/S/D to move, T to place trap: ").lower()
+    if ch == 't':
+        traps[tuple(p)] = 2; update_traps(); ai_move(); continue
+    dirs = {'w': (-1, 0), 's': (1, 0), 'a': (0, -1), 'd': (0, 1)}
+    if ch not in dirs: print("Invalid move!"); continue
+    r, c = p[0]+dirs[ch][0], p[1]+dirs[ch][1]
+    if v(r, c):
+        p = [r, c]
+        if (r, c) in traps: print("You stepped on a trap!"); break
+    update_traps(); ai_move()
