@@ -1,4 +1,4 @@
-import math
+8import math
 
 b = [['P', '.', '.', '.'], ['.', '#', '.', '.'], ['.', '.', '#', '.'], ['.', '.', '.', 'G']]
 m, p, ai, traps = [(-1, 0), (1, 0), (0, -1), (0, 1)], [0, 0], [3, 3], {}
@@ -239,3 +239,132 @@ while True:
     if input("Play again? (y/n): ").lower()!='y':
         print("Game Over!")
         break
+
+
+
+
+Sure. Here is a ready-to-use version with references included.
+
+1. Problem Statement
+
+1. Design a 4×4 grid-based adversarial game involving a human player and an AI opponent.
+
+
+2. The player must navigate from the starting position to the goal G while avoiding obstacles and AI traps.
+
+
+3. The AI must pursue the player and make intelligent movement decisions.
+
+
+4. Both players can use temporary traps to influence the opponent's movement.
+
+
+5. Implement Minimax with Alpha-Beta pruning to allow the AI to predict future moves while reducing unnecessary search.
+
+
+
+
+---
+
+2. Game Rules
+
+1. The player starts at [0,0] and wins by reaching the goal at [3,3].
+
+
+2. The player can move up, down, left, or right using W/A/S/D; cells containing # are blocked.
+
+
+3. The player can place a trap using T, while the AI can place traps when it is close to the player.
+
+
+4. Each trap remains active for 2 turns and belongs either to the player or the AI.
+
+
+5. The AI wins by catching the player or making the player step on an AI trap; the player wins by reaching the goal or making the AI step on a player trap.
+
+
+
+
+---
+
+3. Algorithm
+
+1. State generation: Generate all possible up/down/left/right movements and use valid() to remove illegal moves.
+
+
+2. Minimax search: Recursively simulate alternating AI and player moves up to a search depth of 3.
+
+
+3. Heuristic evaluation: Use negative Manhattan distance to measure how close the AI is to the player.
+
+
+4. Alpha-Beta pruning: Maintain alpha and beta values and stop exploring a branch when beta <= alpha.
+
+
+5. Best-move selection: Evaluate every possible AI movement and select the move with the highest Minimax score.
+
+
+
+This follows the standard depth-limited Minimax + Alpha-Beta approach described by Swarthmore College. 
+
+
+---
+
+4. Working Principle
+
+1. The game initializes the board, player, AI, obstacles, and empty trap dictionary.
+
+
+2. The player makes a movement or places a trap, and the program checks whether the action is valid.
+
+
+3. The AI evaluates its possible movements using Minimax, considering both its own future moves and the player's responses.
+
+
+4. Alpha-Beta pruning eliminates branches that cannot improve the AI's final decision, making the search more efficient.
+
+
+5. The AI moves, trap durations are updated, and the process repeats until either the player reaches the goal, the AI catches the player, or a trap ends the game.
+
+
+
+
+---
+
+5. References
+
+Main references
+
+[1] UC Berkeley CS188 – Multi-Agent Search / Pac-Man
+
+This is the closest reference to your game, because Berkeley's Pac-Man project specifically implements Minimax, Alpha-Beta pruning, and evaluation functions for an adversarial grid-based game. 
+
+[UC Berkeley CS188 – Project 2: Multi-Agent Search](https://inst.eecs.berkeley.edu/~cs188/fa23/projects/proj2/?utm_source=chatgpt.com)
+
+[2] Swarthmore College – Minimax Search with Alpha-Beta Pruning
+
+Useful for the actual Minimax and Alpha-Beta algorithm, including MAX/MIN nodes, alpha, beta, depth limits, and pruning. 
+
+[Swarthmore College – Minimax with Alpha-Beta Pruning](https://www.cs.swarthmore.edu/~meeden/Minimax/Minimax.html?utm_source=chatgpt.com)
+
+[3] Computer History Museum – The Minimax Algorithm and Alpha-Beta Pruning
+
+Provides background on game-tree search and explains how Alpha-Beta pruning reduces the number of branches explored. 
+
+[Computer History Museum – Minimax & Alpha-Beta Pruning](https://www.computerhistory.org/chess/the-minimax-algorithm-and-alphabeta-pruning/?utm_source=chatgpt.com)
+
+[4] Swarthmore College – Minimax and Alpha-Beta Game-Playing Lab
+
+Provides examples of depth-bounded Minimax, Alpha-Beta pruning, and evaluation functions applied to games such as Mancala and Breakthrough. 
+
+[Swarthmore College – Minimax & Alpha-Beta Lab](https://www.cs.swarthmore.edu/~meeden/cs63/s19/labs/03.html?utm_source=chatgpt.com)
+
+Best reference to mention to your professor
+
+If they ask "Where did you get the idea for using Alpha-Beta in a game?", say:
+
+> "I referred to UC Berkeley's CS188 Multi-Agent Search project, where Minimax and Alpha-Beta pruning are applied to the Pac-Man game. I adapted the adversarial-search concept to my own 4×4 grid game with temporary traps and a goal-based escape mechanism." 
+
+
+
+This is also safer academically because you are not claiming that your entire game was copied from Pac-Man; you're citing the AI technique and similar game concept while your specific game mechanics are your implementation.
