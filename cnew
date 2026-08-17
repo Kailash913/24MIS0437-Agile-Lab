@@ -54,3 +54,95 @@ while True:
         p = [r, c]
         if (r, c) in traps: print("You stepped on a trap!"); break
     update_traps(); ai_move()
+
+
+
+
+
+
+import math
+
+B = [['P','.','.','.'],['.','#','.','.'],['.','.','#','.'],['.','.','.','G']]
+M = [(-1,0),(1,0),(0,-1),(0,1)]
+p, ai, traps = [0,0], [3,3], {}
+
+def show():
+    for r in range(4):
+        print(' '.join('P' if [r,c]==p else 'A' if [r,c]==ai
+        else 'T' if (r,c) in traps else B[r][c] for c in range(4)))
+    print("Traps:", len(traps))
+
+def valid(x):
+    r,c=x
+    return 0<=r<4 and 0<=c<4 and B[r][c]!='#'
+
+def d(a,b):
+    return abs(a[0]-b[0])+abs(a[1]-b[1])
+
+def minimax(a, p0, depth, alpha, beta, maxi):
+    if a == p0: return 100
+    if depth == 0: return -d(a,p0)
+    best = -math.inf if maxi else math.inf
+    for dr,dc in M:
+        n = [a[0]+dr,a[1]+dc]
+        if valid(n):
+            val = minimax(n if maxi else a, p0 if maxi else n,
+                          depth-1,alpha,beta,not maxi)
+            if n in traps: val += -25 if maxi else 25
+            if maxi:
+                best=max(best,val); alpha=max(alpha,best)
+            else:
+                best=min(best,val); beta=min(beta,best)
+            if beta<=alpha: break
+    return best
+
+def ai_move():
+    global ai
+    best, move = -math.inf, ai
+    for dr,dc in M:
+        n=[ai[0]+dr,ai[1]+dc]
+        if valid(n):
+            score=minimax(n,p,3,-math.inf,math.inf,False)
+            if n in traps: score-=25
+            if score>best: best,move=score,n
+    ai=move
+
+def ai_trap():
+    global traps
+    if d(ai,p) <= 3:
+        spots=[tuple(x) for x in M if valid([ai[0]+x[0],ai[1]+x[1]])]
+        if spots:
+            x=spots[0]
+            traps[(ai[0]+x[0],ai[1]+x[1])]=2
+
+def update():
+    for x in list(traps):
+        traps[x]-=1
+        if traps[x]<=0: del traps[x]
+
+while True:
+    p,ai,traps=[0,0],[3,3],{}
+    while True:
+        show()
+        if p==ai: print("AI caught you!"); break
+        if p==[3,3]: print("You escaped!"); break
+
+        ch=input("W/A/S/D move | T trap | Q quit: ").lower()
+        if ch=='q': raise SystemExit
+        if ch=='t':
+            traps[tuple(p)]=2
+        else:
+            z={'w':(-1,0),'s':(1,0),'a':(0,-1),'d':(0,1)}
+            if ch not in z: continue
+            n=[p[0]+z[ch][0],p[1]+z[ch][1]]
+            if valid(n): p=n
+        if tuple(p) in traps:
+            print("You stepped on a trap!"); break
+        update()
+        if d(ai,p)<=2: ai_trap()
+        ai_move()
+        update()
+
+    if input("Play again? (y/n): ").lower()!='y':
+        print("Game Over!")
+        break
