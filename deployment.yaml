@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: java-app
+spec:
+ replicas: 2
+ selector:
+ matchLabels:
+ app: java-app
+ template:
+ metadata:
+ labels:
+ app: java-app
+ spec:
+ containers:
+ - name: java-app
+ image: <dockerhub-username>/java-app:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: java-service
+spec:
+ type: NodePort
+ selector:
+ app: java-app
+ ports:
+ - port: 80
+ targetPort: 8080
+ nodePort: 30008
