@@ -1,0 +1,370 @@
+8import math
+
+b = [['P', '.', '.', '.'], ['.', '#', '.', '.'], ['.', '.', '#', '.'], ['.', '.', '.', 'G']]
+m, p, ai, traps = [(-1, 0), (1, 0), (0, -1), (0, 1)], [0, 0], [3, 3], {}
+
+def show():
+    for r in range(4):
+        print(*( 'P' if [r,c]==p else 'A' if [r,c]==ai else 'T' if (r,c) in traps else b[r][c] for c in range(4) ))
+    print()
+
+v = lambda r, c: 0 <= r < 4 and 0 <= c < 4 and b[r][c] != '#'
+dist = lambda a, b: abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+def minimax(pos, p_pos, depth, alpha, beta, maxi):
+    if pos == p_pos: return 50
+    if pos == [0, 0]: return -50
+    if depth == 0: return -dist(pos, [0, 0])
+    best = -math.inf if maxi else math.inf
+    for dr, dc in m:
+        r, c = pos[0]+dr, pos[1]+dc
+        if v(r, c):
+            val = minimax([r,c] if maxi else pos, p_pos if maxi else [r,c], depth-1, alpha, beta, not maxi)
+            if maxi and (r,c) in traps: val -= 20
+            best, alpha, beta = (max(best, val), max(alpha, best), beta) if maxi else (min(best, val), alpha, min(beta, best))
+            if beta <= alpha: break
+    return best
+
+def ai_move():
+    global ai
+    best_v, best_m = -math.inf, ai
+    for dr, dc in m:
+        r, c = ai[0]+dr, ai[1]+dc
+        if v(r, c):
+            val = minimax([r,c], p, 3, -math.inf, math.inf, False) - (20 if (r,c) in traps else 0)
+            if val > best_v: best_v, best_m = val, [r,c]
+    ai = best_m
+
+def update_traps():
+    for k in list(traps.keys()):
+        traps[k] -= 1
+        if traps[k] <= 0: del traps[k]
+
+while True:
+    show()
+    if ai == p: print("AI caught the player!"); break
+    if p == [3, 3]: print("Player reached the goal!"); break
+    ch = input("W/A/S/D to move, T to place trap: ").lower()
+    if ch == 't':
+        traps[tuple(p)] = 2; update_traps(); ai_move(); continue
+    dirs = {'w': (-1, 0), 's': (1, 0), 'a': (0, -1), 'd': (0, 1)}
+    if ch not in dirs: print("Invalid move!"); continue
+    r, c = p[0]+dirs[ch][0], p[1]+dirs[ch][1]
+    if v(r, c):
+        p = [r, c]
+        if (r, c) in traps: print("You stepped on a trap!"); break
+    update_traps(); ai_move()
+
+
+
+
+
+
+import math
+
+B = [['P','.','.','.'],['.','#','.','.'],['.','.','#','.'],['.','.','.','G']]
+M = [(-1,0),(1,0),(0,-1),(0,1)]
+p, ai, traps = [0,0], [3,3], {}
+
+def show():
+    for r in range(4):
+        print(' '.join('P' if [r,c]==p else 'A' if [r,c]==ai
+        else 'T' if (r,c) in traps else B[r][c] for c in range(4)))
+    print("Traps:", len(traps))
+
+def valid(x):
+    r,c=x
+    return 0<=r<4 and 0<=c<4 and B[r][c]!='#'
+
+def d(a,b):
+    return abs(a[0]-b[0])+abs(a[1]-b[1])
+
+def minimax(a, p0, depth, alpha, beta, maxi):
+    if a == p0: return 100
+    if depth == 0: return -d(a,p0)
+    best = -math.inf if maxi else math.inf
+    for dr,dc in M:
+        n = [a[0]+dr,a[1]+dc]
+        if valid(n):
+            val = minimax(n if maxi else a, p0 if maxi else n,
+                          depth-1,alpha,beta,not maxi)
+            if n in traps: val += -25 if maxi else 25
+            if maxi:
+                best=max(best,val); alpha=max(alpha,best)
+            else:
+                best=min(best,val); beta=min(beta,best)
+            if beta<=alpha: break
+    return best
+
+def ai_move():
+    global ai
+    best, move = -math.inf, ai
+    for dr,dc in M:
+        n=[ai[0]+dr,ai[1]+dc]
+        if valid(n):
+            score=minimax(n,p,3,-math.inf,math.inf,False)
+            if n in traps: score-=25
+            if score>best: best,move=score,n
+    ai=move
+
+def ai_trap():
+    global traps
+    if d(ai,p) <= 3:
+        spots=[tuple(x) for x in M if valid([ai[0]+x[0],ai[1]+x[1]])]
+        if spots:
+            x=spots[0]
+            traps[(ai[0]+x[0],ai[1]+x[1])]=2
+
+def update():
+    for x in list(traps):
+        traps[x]-=1
+        if traps[x]<=0: del traps[x]
+
+while True:
+    p,ai,traps=[0,0],[3,3],{}
+    while True:
+        show()
+        if p==ai: print("AI caught you!"); break
+        if p==[3,3]: print("You escaped!"); break
+
+        ch=input("W/A/S/D move | T trap | Q quit: ").lower()
+        if ch=='q': raise SystemExit
+        if ch=='t':
+            traps[tuple(p)]=2
+        else:
+            z={'w':(-1,0),'s':(1,0),'a':(0,-1),'d':(0,1)}
+            if ch not in z: continue
+            n=[p[0]+z[ch][0],p[1]+z[ch][1]]
+            if valid(n): p=n
+        if tuple(p) in traps:
+            print("You stepped on a trap!"); break
+        update()
+        if d(ai,p)<=2: ai_trap()
+        ai_move()
+        update()
+
+    if input("Play again? (y/n): ").lower()!='y':
+        print("Game Over!")
+        break
+
+
+
+
+
+import math
+
+B = [['P','.','.','.'],['.','#','.','.'],['.','.','#','.'],['.','.','.','G']]
+M = [(-1,0),(1,0),(0,-1),(0,1)]
+p, ai, traps =[0,0], [3,3], {}
+
+def show():
+    for r in range(4):
+        print(' '.join('P' if [r,c]==p else 'A' if [r,c]==ai
+        else 'T' if (r,c) in traps else B[r][c] for c in range(4)))
+    print("Traps active:", len(traps))
+
+def valid(x):
+    r,c=x
+    return 0<=r<4 and 0<=c<4 and B[r][c]!='#'
+
+def d(a,b):
+    return abs(a[0]-b[0])+abs(a[1]-b[1])
+
+def minimax(a, p0, depth, alpha, beta, maxi):
+    if a == p0: return 100
+    if depth == 0: return -d(a,p0)
+    best = -math.inf if maxi else math.inf
+    for dr,dc in M:
+        n = [a[0]+dr,a[1]+dc]
+        if valid(n):
+            val = minimax(n if maxi else a, p0 if maxi else n,
+                          depth-1,alpha,beta,not maxi)
+            if tuple(n) in traps and traps[tuple(n)]["owner"] == "player": 
+                val += -25 if maxi else 25
+            if maxi:
+                best=max(best,val); alpha=max(alpha,best)
+            else:
+                best=min(best,val); beta=min(beta,best)
+            if beta<=alpha: break
+    return best
+
+def ai_move():
+    global ai
+    best, move = -math.inf, ai
+    for dr,dc in M:
+        n=[ai[0]+dr,ai[1]+dc]
+        if valid(n):
+            score=minimax(n,p,3,-math.inf,math.inf,False)
+            if tuple(n) in traps and traps[tuple(n)]["owner"] == "player": 
+                score-=25
+            if score>best: best,move=score,n
+    ai=move
+
+def ai_trap():
+    global traps
+    if d(ai,p) <= 3:
+        spots=[(ai[0]+x[0], ai[1]+x[1]) for x in M if valid([ai[0]+x[0],ai[1]+x[1]])]
+        if spots:
+            x=spots[0]
+            traps[x] = {"duration": 2, "owner": "ai"}
+
+def update():
+    for x in list(traps):
+        traps[x]["duration"] -= 1
+        if traps[x]["duration"] <= 0: del traps[x]
+
+while True:
+    p,ai,traps=[0,0],[3,3],{}
+    while True:
+        show()
+        if p==ai: print("AI caught you!"); break
+        if p==[3,3]: print("You escaped!"); break
+
+        ch=input("W/A/S/D move | T trap | Q quit: ").lower()
+        if ch=='q': raise SystemExit
+        if ch=='t':
+            traps[tuple(p)] = {"duration": 2, "owner": "player"}
+        else:
+            z={'w':(-1,0),'s':(1,0),'a':(0,-1),'d':(0,1)}
+            if ch not in z: continue
+            n=[p[0]+z[ch][0],p[1]+z[ch][1]]
+            if valid(n): p=n
+        if tuple(p) in traps and traps[tuple(p)]["owner"] == "ai":
+            print("You stepped on an AI trap! Game Over."); break
+        if d(ai,p)<=2: ai_trap()
+        ai_move()
+        if tuple(ai) in traps and traps[tuple(ai)]["owner"] == "player":
+            print("AI stepped on your trap! You win!"); break
+        update()
+    if input("Play again? (y/n): ").lower()!='y':
+        print("Game Over!")
+        break
+
+
+
+
+Sure. Here is a ready-to-use version with references included.
+
+1. Problem Statement
+
+1. Design a 4×4 grid-based adversarial game involving a human player and an AI opponent.
+
+
+2. The player must navigate from the starting position to the goal G while avoiding obstacles and AI traps.
+
+
+3. The AI must pursue the player and make intelligent movement decisions.
+
+
+4. Both players can use temporary traps to influence the opponent's movement.
+
+
+5. Implement Minimax with Alpha-Beta pruning to allow the AI to predict future moves while reducing unnecessary search.
+
+
+
+
+---
+
+2. Game Rules
+
+1. The player starts at [0,0] and wins by reaching the goal at [3,3].
+
+
+2. The player can move up, down, left, or right using W/A/S/D; cells containing # are blocked.
+
+
+3. The player can place a trap using T, while the AI can place traps when it is close to the player.
+
+
+4. Each trap remains active for 2 turns and belongs either to the player or the AI.
+
+
+5. The AI wins by catching the player or making the player step on an AI trap; the player wins by reaching the goal or making the AI step on a player trap.
+
+
+
+
+---
+
+3. Algorithm
+
+1. State generation: Generate all possible up/down/left/right movements and use valid() to remove illegal moves.
+
+
+2. Minimax search: Recursively simulate alternating AI and player moves up to a search depth of 3.
+
+
+3. Heuristic evaluation: Use negative Manhattan distance to measure how close the AI is to the player.
+
+
+4. Alpha-Beta pruning: Maintain alpha and beta values and stop exploring a branch when beta <= alpha.
+
+
+5. Best-move selection: Evaluate every possible AI movement and select the move with the highest Minimax score.
+
+
+
+This follows the standard depth-limited Minimax + Alpha-Beta approach described by Swarthmore College. 
+
+
+---
+
+4. Working Principle
+
+1. The game initializes the board, player, AI, obstacles, and empty trap dictionary.
+
+
+2. The player makes a movement or places a trap, and the program checks whether the action is valid.
+
+
+3. The AI evaluates its possible movements using Minimax, considering both its own future moves and the player's responses.
+
+
+4. Alpha-Beta pruning eliminates branches that cannot improve the AI's final decision, making the search more efficient.
+
+
+5. The AI moves, trap durations are updated, and the process repeats until either the player reaches the goal, the AI catches the player, or a trap ends the game.
+
+
+
+
+---
+
+5. References
+
+Main references
+
+[1] UC Berkeley CS188 – Multi-Agent Search / Pac-Man
+
+This is the closest reference to your game, because Berkeley's Pac-Man project specifically implements Minimax, Alpha-Beta pruning, and evaluation functions for an adversarial grid-based game. 
+
+[UC Berkeley CS188 – Project 2: Multi-Agent Search](https://inst.eecs.berkeley.edu/~cs188/fa23/projects/proj2/?utm_source=chatgpt.com)
+
+[2] Swarthmore College – Minimax Search with Alpha-Beta Pruning
+
+Useful for the actual Minimax and Alpha-Beta algorithm, including MAX/MIN nodes, alpha, beta, depth limits, and pruning. 
+
+[Swarthmore College – Minimax with Alpha-Beta Pruning](https://www.cs.swarthmore.edu/~meeden/Minimax/Minimax.html?utm_source=chatgpt.com)
+
+[3] Computer History Museum – The Minimax Algorithm and Alpha-Beta Pruning
+
+Provides background on game-tree search and explains how Alpha-Beta pruning reduces the number of branches explored. 
+
+[Computer History Museum – Minimax & Alpha-Beta Pruning](https://www.computerhistory.org/chess/the-minimax-algorithm-and-alphabeta-pruning/?utm_source=chatgpt.com)
+
+[4] Swarthmore College – Minimax and Alpha-Beta Game-Playing Lab
+
+Provides examples of depth-bounded Minimax, Alpha-Beta pruning, and evaluation functions applied to games such as Mancala and Breakthrough. 
+
+[Swarthmore College – Minimax & Alpha-Beta Lab](https://www.cs.swarthmore.edu/~meeden/cs63/s19/labs/03.html?utm_source=chatgpt.com)
+
+Best reference to mention to your professor
+
+If they ask "Where did you get the idea for using Alpha-Beta in a game?", say:
+
+> "I referred to UC Berkeley's CS188 Multi-Agent Search project, where Minimax and Alpha-Beta pruning are applied to the Pac-Man game. I adapted the adversarial-search concept to my own 4×4 grid game with temporary traps and a goal-based escape mechanism." 
+
+
+
+This is also safer academically because you are not claiming that your entire game was copied from Pac-Man; you're citing the AI technique and similar game concept while your specific game mechanics are your implementation.
